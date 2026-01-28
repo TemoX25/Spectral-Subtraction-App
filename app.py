@@ -12,7 +12,7 @@ st.title("Spektral-Subtraktions-Filter")
 
 uploaded = st.file_uploader("WAV-Datei hochladen", type=["wav"])
 NOISE_SEC = st.number_input("Rauschfenster am Anfang (Sekunden)", min_value=0.0, value=10.0, step=0.5)
-ALPHA = st.slider("Alpha (Over-Subtraction)", min_value=0.0, max_value=3.0, value=1.2, step=0.05)
+ALPHA = st.slider("Alpha (Over-Subtraction)", min_value=0.0, max_value=5.0, value=1.2, step=0.05)
 
 if uploaded is not None:
     # WAV lesen
