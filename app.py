@@ -2,6 +2,7 @@ import io
 import numpy as np
 import wave
 import streamlit as st
+import matplotlib.pyplot as plt
 from scipy.signal import stft, istft, get_window
 from scipy.io.wavfile import write
 
@@ -38,6 +39,15 @@ if uploaded is not None:
     f, t, X = stft(x, fs=fs, window=win, nperseg=NPERSEG, noverlap=NOVERLAP)
     X_mag, X_phase = np.abs(X), np.angle(X)
 
+    # Spektrogramm Original anzeigen + Download
+    fig_orig, orig_png = plot_spectrogram(X, f, t, "Spektrogramm Original (dB)")
+    st.pyplot(fig_orig)
+    st.download_button(
+        "Original-Spektrogramm herunterladen (PNG)",
+        data=orig_png,
+        file_name="spektrogramm_original.png",
+        mime="image/png",
+
     # Noise-Profil (mit Fallback)
     noise_cols = t < NOISE_SEC
     if not np.any(noise_cols):
@@ -69,4 +79,14 @@ if uploaded is not None:
         data=out_bytes,
         file_name="gefiltert.wav",
         mime="audio/wav",
+    )
+
+# Spektrogramm Gefiltert anzeigen + Download
+    fig_filt, filt_png = plot_spectrogram(Y, f, t, "Spektrogramm Gefiltert (dB)")
+    st.pyplot(fig_filt)
+    st.download_button(
+        "Gefiltertes Spektrogramm herunterladen (PNG)",
+        data=filt_png,
+        file_name="spektrogramm_gefiltert.png",
+        mime="image/png",
     )
