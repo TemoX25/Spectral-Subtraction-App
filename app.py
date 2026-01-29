@@ -47,6 +47,7 @@ if uploaded is not None:
         data=orig_png,
         file_name="spektrogramm_original.png",
         mime="image/png",
+    )
 
     # Noise-Profil (mit Fallback)
     noise_cols = t < NOISE_SEC
