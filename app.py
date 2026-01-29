@@ -56,16 +56,6 @@ if uploaded is not None:
     f, t, X = stft(x, fs=fs, window=win, nperseg=NPERSEG, noverlap=NOVERLAP)
     X_mag, X_phase = np.abs(X), np.angle(X)
 
-    # Spektrogramm Original anzeigen + Download
-    fig_orig, orig_png = plot_spectrogram(X, f, t, "Spektrogramm Original (dB)")
-    st.pyplot(fig_orig)
-    st.download_button(
-        "Original-Spektrogramm herunterladen (PNG)",
-        data=orig_png,
-        file_name="spektrogramm_original.png",
-        mime="image/png",
-    )
-
     # Noise-Profil (mit Fallback)
     noise_cols = t < NOISE_SEC
     if not np.any(noise_cols):
@@ -98,6 +88,16 @@ if uploaded is not None:
         mime="audio/wav",
     )
 
+    # Spektrogramm Original anzeigen + Download
+    fig_orig, orig_png = plot_spectrogram(X, f, t, "Spektrogramm Original (dB)")
+    st.pyplot(fig_orig)
+    st.download_button(
+        "Original-Spektrogramm herunterladen (PNG)",
+        data=orig_png,
+        file_name="spektrogramm_original.png",
+        mime="image/png",
+    )
+    
     # Spektrogramm Gefiltert anzeigen + Download
     fig_filt, filt_png = plot_spectrogram(Y, f, t, "Spektrogramm Gefiltert (dB)")
     st.pyplot(fig_filt)
