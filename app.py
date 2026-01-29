@@ -15,6 +15,23 @@ uploaded = st.file_uploader("WAV-Datei hochladen", type=["wav"])
 NOISE_SEC = st.number_input("Rauschfenster am Anfang (Sekunden)", min_value=0.0, value=10.0, step=0.5)
 ALPHA = st.slider("Alpha (Over-Subtraction)", min_value=0.0, max_value=5.0, value=1.2, step=0.05)
 
+def spec_db(Z: np.ndarray) -> np.ndarray:
+    return 20 * np.log10(np.maximum(np.abs(Z), 1e-12))
+
+def plot_spectrogram(Z: np.ndarray, f: np.ndarray, t: np.ndarray, title: str) -> tuple[plt.Figure, bytes]:
+    fig, ax = plt.subplots(figsize=(10, 4))
+    pcm = ax.pcolormesh(t, f, spec_db(Z), shading="auto")
+    ax.set_ylabel("Frequenz [Hz]")
+    ax.set_xlabel("Zeit [s]")
+    ax.set_title(title)
+    fig.colorbar(pcm, ax=ax, label="dB")
+    fig.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return fig, buf.getvalue()
+
 if uploaded is not None:
     # WAV lesen
     wav_bytes = uploaded.read()
@@ -34,7 +51,7 @@ if uploaded is not None:
     fs = p.framerate
     x = x_i.astype(np.float64) / scale
 
-    # STFT 
+    # STFT
     win = get_window("hann", NPERSEG)
     f, t, X = stft(x, fs=fs, window=win, nperseg=NPERSEG, noverlap=NOVERLAP)
     X_mag, X_phase = np.abs(X), np.angle(X)
@@ -57,19 +74,18 @@ if uploaded is not None:
 
     N_mag = np.mean(X_mag[:, noise_cols], axis=1, keepdims=True)
 
-    # Spektral-Subtraktion 
+    # Spektral-Subtraktion
     Y_mag = np.maximum(X_mag - ALPHA * N_mag, 0.0)
     Y = Y_mag * np.exp(1j * X_phase)
 
-    # iSTFT 
+    # iSTFT
     _, y = istft(Y, fs=fs, window=win, nperseg=NPERSEG, noverlap=NOVERLAP)
 
-    # Export 
+    # Export
     out = np.clip(y * scale, -scale, scale - 1).astype(dt)
 
     # Streamlit will Bytes zum Download -> in Memory schreiben
     out_buf = io.BytesIO()
-    # write() kann in einen Buffer schreiben, wenn er wie eine Datei ist
     write(out_buf, fs, out)
     out_bytes = out_buf.getvalue()
 
@@ -82,7 +98,7 @@ if uploaded is not None:
         mime="audio/wav",
     )
 
-# Spektrogramm Gefiltert anzeigen + Download
+    # Spektrogramm Gefiltert anzeigen + Download
     fig_filt, filt_png = plot_spectrogram(Y, f, t, "Spektrogramm Gefiltert (dB)")
     st.pyplot(fig_filt)
     st.download_button(
